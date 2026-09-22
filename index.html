@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>First-Trimester Prognosis Calculator</title>
+  <title>Early First Trimester Prognosis Calculator*</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -54,10 +54,11 @@
     }
 
     .subtitle {
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       margin-bottom: 24px;
       text-align: center;
+      font-style: italic;
     }
 
     .form-group {
@@ -166,14 +167,28 @@
       font-size: 1.05rem;
       font-weight: 600;
       color: var(--error-text);
+      text-align: center;
+    }
+
+    .footer-notes {
+      margin-top: 24px;
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .footer-notes p {
+      margin-bottom: 6px;
     }
   </style>
 </head>
 <body>
 
 <div class="calculator-card">
-  <h1>Prognosis Calculator</h1>
-  <p class="subtitle">First-Trimester Viability Estimation Model</p>
+  <h1>Early First Trimester Prognosis Calculator*</h1>
+  <p class="subtitle">Based on Doubilet et al. J Ultrasound Med 2021; 40: 541-550</p>
 
   <form id="calcForm" autocomplete="off">
     <!-- E7: Maternal Age -->
@@ -198,14 +213,14 @@
       </select>
     </div>
 
-    <!-- E10: Categorical variable (A / S / N) -->
+    <!-- E10: Serial hCG Trend -->
     <div class="form-group">
-      <label for="e10">Status / Category</label>
+      <label for="e10">Serial hCG Trend</label>
       <select id="e10" name="e10">
-        <option value="">Select category</option>
-        <option value="A">Appropriate (A)</option>
-        <option value="S">Subnormal (S)</option>
-        <option value="N">Normal / Other (N)</option>
+        <option value="">Select trend</option>
+        <option value="A">Appropriate</option>
+        <option value="S">Suboptimal</option>
+        <option value="N">Not measured</option>
       </select>
     </div>
 
@@ -217,6 +232,12 @@
   <div id="outputCard" class="output-container">
     <div class="output-label">Probability of Viability at the End of the First Trimester</div>
     <div id="result" class="output-value">--</div>
+  </div>
+
+  <div class="footer-notes">
+    <p>* Applies to early pregnancies with ultrasound showing saclike intrauterine structure without yolk sac or embryo.</p>
+    <p>Calculator should not be used when serial hCG values are unchanged or decreasing.</p>
+    <p>Serial hCG Trend is “Appropriate” if initial hCG is &lt;5000 and at least doubles in 2 days; “Suboptimal” if initial hCG is &lt;5000 and fails to double in 2 days; “Not measured” if initial hCG &gt;5000 or serial hCG's were not done.</p>
   </div>
 </div>
 
@@ -235,7 +256,6 @@
     const rawE9 = e9Input.value.trim().toUpperCase();
     const rawE10 = e10Input.value.trim().toUpperCase();
 
-    // IF(AND(E7="",E8="",E9="",E10=""), "--", ...)
     if (rawE7 === "" && rawE8 === "" && rawE9 === "" && rawE10 === "") {
       outputCard.className = "output-container";
       resultDisplay.textContent = "--";
@@ -250,7 +270,6 @@
     const validE9 = rawE9 === "Y" || rawE9 === "N";
     const validE10 = rawE10 === "A" || rawE10 === "S" || rawE10 === "N";
 
-    // IF(AND(E7>=17,E7<=45, E8>=2, E8<=20, OR(E9="Y",E9="N"), OR(E10="A",E10="S",E10="N")), ...)
     if (validE7 && validE8 && validE9 && validE10) {
       const termBleed = (rawE9 === "Y") ? -1.281 : 0.0;
       let termCategory = 0.0;
@@ -260,7 +279,7 @@
         termCategory = -2.017;
       }
 
-      // Linear predictor (Logit)
+      // Linear predictor (Logit) using exact coefficients from your formula
       const z = 4.383 - (0.102 * valE7) - (0.19 * valE8) + termBleed + termCategory;
       const prob = Math.exp(z) / (1 + Math.exp(z));
 
